@@ -1,4 +1,12 @@
+import { useNavigate } from "react-router-dom";
+
 export default function ProductTile({ singleProductTile }) {
+  const navigate = useNavigate();
+
+  function handleFetchProductDetails(productId) {
+    navigate(`/product-details/${productId}`);
+  }
+
   return (
     <div className="relative group border border-cyan-700 p-6 cursor-pointer">
       <div className="overflow-hidden aspect-w-1 aspect-h-1">
@@ -20,8 +28,11 @@ export default function ProductTile({ singleProductTile }) {
           </p>
         </div>
       </div>
-      <button className="px-5 mt-5 w-full py-2 rounded-none bg-black text-white font-semibold text-lg">
-        Details
+      <button
+        onClick={() => handleFetchProductDetails(singleProductTile?.id)}
+        className="px-5 mt-5 w-full py-2 rounded-none bg-black text-white font-semibold text-lg"
+      >
+        View Details
       </button>
     </div>
   );

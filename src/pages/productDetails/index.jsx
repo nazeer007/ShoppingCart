@@ -1,37 +1,51 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ShoppingCartContext } from "../../context";
 
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { productDetails, setProductDetails, loading, setLoading } =
-    useContext(ShoppingCartContext);
-  console.log(id);
 
-  async function fetchProductDetails() {
-    const apiResponse = await fetch(`https://dummyjson.com/products/${id}`);
-    const result = await apiResponse.json();
-    // console.log(result);
-    if (result) {
-      setProductDetails(result);
-      setLoading(false);
+  const { setProductDetails, handleAddToCart } =
+    useContext(ShoppingCartContext);
+
+  const [productDetails, setLocalProductDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  async function fetchProductDetailsFromAPI() {
+    try {
+      const apiResponse = await fetch(`https://dummyjson.com/products/${id}`);
+      const result = await apiResponse.json();
+      if (result) {
+        setLocalProductDetails(result);
+        setProductDetails(result);
+        localStorage.setItem("productDetails", JSON.stringify(result)); // ✅ Save correctly
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
     }
   }
 
-  function handleGoToCart() {
-    navigate("/cart");
-  }
+  useEffect(() => {
+    const savedDetails = localStorage.getItem("productDetails");
+
+    if (savedDetails) {
+      const parsedDetails = JSON.parse(savedDetails);
+      if (parsedDetails?.id === Number(id)) {
+        setLocalProductDetails(parsedDetails);
+        setLoading(false);
+      } else {
+        fetchProductDetailsFromAPI();
+      }
+    } else {
+      fetchProductDetailsFromAPI();
+    }
+  }, [id]);
 
   if (loading) {
     return <h3>Product Details Loading! Please wait</h3>;
   }
-
-  useEffect(() => {
-    fetchProductDetails();
-  }, [id]);
-
-  console.log(productDetails);
 
   return (
     <div>
@@ -46,17 +60,15 @@ export default function ProductDetails() {
               />
             </div>
             <div className="mt-6 flex flex-wrap justify-center gap-6 mx-auto">
-              {productDetails?.images?.length
-                ? productDetails?.images?.map((imageItem) => (
-                    <div className="rounded-xl p-4 shadow-md" key={imageItem}>
-                      <img
-                        className="w-24 cursor-pointer"
-                        src={imageItem}
-                        alt="Product Secondary image"
-                      />
-                    </div>
-                  ))
-                : null}
+              {productDetails?.images?.map((imageItem) => (
+                <div className="rounded-xl p-4 shadow-md" key={imageItem}>
+                  <img
+                    className="w-24 cursor-pointer"
+                    src={imageItem}
+                    alt="Product Secondary"
+                  />
+                </div>
+              ))}
             </div>
           </div>
           <div className="lg:col-span-2">
@@ -66,7 +78,7 @@ export default function ProductDetails() {
             </div>
             <div>
               <button
-                onClick={handleGoToCart}
+                onClick={() => handleAddToCart(productDetails)}
                 className="mt-5 min-w-[200px] px-4 py-3 border border-[#333] bg-transparent text-sm font-semibold rounded"
               >
                 Add to cart

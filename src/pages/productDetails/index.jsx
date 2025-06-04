@@ -19,7 +19,7 @@ export default function ProductDetails() {
       if (result) {
         setLocalProductDetails(result);
         setProductDetails(result);
-        localStorage.setItem("productDetails", JSON.stringify(result)); // ✅ Save correctly
+        localStorage.setItem("productDetails", JSON.stringify(result));
         setLoading(false);
       }
     } catch (error) {
